@@ -3,18 +3,25 @@ import { Wallet } from "lucide-react";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
 
-const AuthScreen = ({ onLogin }) => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+const AuthScreen = ({ onLogin, onRegister }) => {
+    const [isLogin, setIsLogin] = useState(true);
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!email || !password) return;
-    if (!isLogin && !name) return;
-    onLogin(name || "Danylo", email, password);
-  };
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!email || !password) return;
+
+        if (isLogin) {
+            // 2. Use the login logic
+            onLogin(name, email, password);
+        } else {
+            // 3. Use the registration logic
+            if (!name) return;
+            onRegister(name, email, password);
+        }
+    };
 
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center items-center p-4">

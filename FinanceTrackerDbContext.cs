@@ -1,12 +1,15 @@
-﻿using FinanceTracker.Models;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using FinanceTracker.Models;
 
+namespace FinanceTracker;
 
 public class FinanceTrackerDbContext : DbContext
 {
-    public FinanceTrackerDbContext(DbContextOptions<FinanceTrackerDbContext> options) : base(options) { }
+    public FinanceTrackerDbContext(DbContextOptions<FinanceTrackerDbContext> options)
+        : base(options)
+    {
+    }
 
-    public DbSet<User> Users { get; set; }
-    public DbSet<Transaction> Transactions { get; set; }
-    public DbSet<Category> Categories { get; set; }
+    public DbSet<User> Users { get; set; } = null!;
+    public DbSet<Transaction> Transactions { get; set; } = null!;
 }

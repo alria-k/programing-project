@@ -12,8 +12,9 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddControllers();
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<FinanceTrackerDbContext>(options =>
-    options.UseInMemoryDatabase("FinanceDb"));
+    options.UseSqlite(connectionString));
 
 builder.Services.AddCors(options => {
     options.AddDefaultPolicy(policy => {
@@ -35,6 +36,10 @@ if (app.Environment.IsDevelopment())
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<FinanceTrackerDbContext>();
+
+    // This line ensures the database and tables exist before checking for users
+    db.Database.EnsureCreated();
+
     if (!db.Users.Any())
     {
         db.Users.Add(new User
