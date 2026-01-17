@@ -4,8 +4,11 @@ import TransactionItem from "../components/shared/TransactionItem";
 import { formatCurrency } from "../utils/helpers";
 
 const TypeDetailsModal = ({ transactions, type, onClose, onDelete }) => {
-  const filtered = transactions.filter((t) => t.type === type);
-  const total = filtered.reduce((acc, curr) => acc + curr.amount, 0);
+    const filteredTransactions = transactions.filter(tx =>
+        type === "income" ? tx.isIncome === true : tx.isIncome === false
+    );
+
+    const totalAmount = filteredTransactions.reduce((acc, curr) => acc + curr.amount, 0);
 
   return (
     <div className="absolute inset-0 z-50 bg-black/20 backdrop-blur-sm flex items-end sm:items-center justify-center animate-fade-in">
@@ -35,17 +38,17 @@ const TypeDetailsModal = ({ transactions, type, onClose, onDelete }) => {
           }`}
         >
           <p className="text-sm font-medium opacity-80">Total {type}</p>
-          <p className="text-3xl font-bold">{formatCurrency(total)}</p>
+          <p className="text-3xl font-bold">{formatCurrency(totalAmount)}</p>
         </div>
 
         {/* List */}
         <div className="flex-1 overflow-y-auto space-y-3 pb-4">
-          {filtered.length === 0 ? (
+          {filteredTransactions.length === 0 ? (
             <div className="text-center py-10 text-gray-400">
               No {type}s found
             </div>
           ) : (
-            [...filtered]
+            [...filteredTransactions]
               .reverse()
               .map((tx) => (
                 <TransactionItem key={tx.id} tx={tx} onDelete={onDelete} />

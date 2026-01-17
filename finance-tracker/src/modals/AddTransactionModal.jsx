@@ -7,24 +7,17 @@ const AddTransactionModal = ({ onClose, onAdd }) => {
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!amount || !category) return;
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!amount || !category) return;
 
-    const now = new Date();
-    const todayDate = now.toISOString().split("T")[0];
-    const timestamp = now.toISOString();
-
-    onAdd({
-      id: Date.now(),
-      type,
-      amount: parseFloat(amount),
-      category,
-      date: todayDate,
-      timestamp: timestamp,
-      icon: type === "income" ? "Briefcase" : "ShoppingBag",
-    });
-  };
+        onAdd({
+            amount: parseFloat(amount), 
+            category: category,           
+            isIncome: type === "income", 
+            date: new Date().toISOString() 
+        });
+    };
 
   return (
     <div className="absolute inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">

@@ -1,3 +1,4 @@
+const API_URL = "https://localhost:7055";
 import React, { useState, useEffect, useMemo } from "react";
 import { Home, PieChart, Plus, LogOut, Lock } from "lucide-react";
 
@@ -36,100 +37,82 @@ export default function App() {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isSavingsModalOpen, setIsSavingsModalOpen] = useState(false);
 
-  // Initialize data
-  useEffect(() => {
-    const savedUser = localStorage.getItem("finance_user");
-    const savedTx = localStorage.getItem("finance_transactions");
-    const savedSavings = localStorage.getItem("finance_savings");
-    const savedRates = localStorage.getItem("finance_rates");
+    // 1. Initialize session and basic settings from localStorage
+    useEffect(() => {
+        const savedUser = localStorage.getItem("finance_user");
+        const savedSavings = localStorage.getItem("finance_savings");
+        const savedRates = localStorage.getItem("finance_rates");
 
-    if (savedUser) {
-      const parsedUser = JSON.parse(savedUser);
-      if (parsedUser.isActive === undefined) parsedUser.isActive = true;
-      setUser(parsedUser);
-      setView(parsedUser.role === "admin" ? "admin" : "home");
-    }
+        if (savedUser) {
+            const parsedUser = JSON.parse(savedUser);
+            // Ensure the account isn't accidentally locked out
+            if (parsedUser.isActive === undefined) parsedUser.isActive = true;
+            setUser(parsedUser);
+            setView(parsedUser.role === "admin" ? "admin" : "home");
+        }
 
-    if (savedTx) {
-      setTransactions(JSON.parse(savedTx));
-    } else {
-      const today = getTodayISO();
-      setTransactions([
-        {
-          id: 1,
-          type: "income",
-          amount: 2500,
-          category: "Salary",
-          date: today,
-          timestamp: new Date().toISOString(),
-          icon: "Briefcase",
-        },
-        {
-          id: 2,
-          type: "expense",
-          amount: 45,
-          category: "Coffee",
-          date: today,
-          timestamp: new Date().toISOString(),
-          icon: "Coffee",
-        },
-        {
-          id: 3,
-          type: "expense",
-          amount: 120,
-          category: "Groceries",
-          date: "2023-10-27",
-          timestamp: "2023-10-27T14:15:00.000Z",
-          icon: "ShoppingBag",
-        },
-        {
-          id: 4,
-          type: "expense",
-          amount: 30,
-          category: "Taxi",
-          date: "2023-10-27",
-          timestamp: "2023-10-27T18:45:00.000Z",
-          icon: "Car",
-        },
-      ]);
-    }
+        if (savedSavings) setSavings(JSON.parse(savedSavings));
+        if (savedRates) setRates(JSON.parse(savedRates));
+        // NOTE: We no longer load 'savedTx' here because we want fresh data from the DB
+    }, []);
 
-    if (savedSavings) setSavings(JSON.parse(savedSavings));
-    if (savedRates) setRates(JSON.parse(savedRates));
-  }, []);
+    // 2. Fetch LIVE transactions from the database whenever the user changes
+    useEffect(() => {
+        const fetchUserTransactions = async () => {
+            // Prevents 'undefined' errors if user isn't fully loaded yet
+            if (!user || !user.id) return;
 
-  // Save on change
-  useEffect(() => {
-    if (user) localStorage.setItem("finance_user", JSON.stringify(user));
-    localStorage.setItem("finance_transactions", JSON.stringify(transactions));
-    localStorage.setItem("finance_savings", JSON.stringify(savings));
-    localStorage.setItem("finance_rates", JSON.stringify(rates));
-  }, [user, transactions, savings, rates]);
+            try {
+                // Fetch specific records for 'Vlad' or 'Tester' using the UserId
+                const response = await fetch(`${API_URL}/Transaction?userId=${user.id}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setTransactions(data);
+                }
+            } catch (error) {
+                console.error("Database fetch error:", error);
+            }
+        };
+
+        fetchUserTransactions();
+    }, [user]);
+
+    // 3. Save only persistent settings (NOT transactions) to localStorage
+    useEffect(() => {
+        if (user) {
+            localStorage.setItem("finance_user", JSON.stringify(user));
+        }
+        localStorage.setItem("finance_savings", JSON.stringify(savings));
+        localStorage.setItem("finance_rates", JSON.stringify(rates));
+        // !!! DO NOT save transactions here. Let the database handle them !!!
+    }, [user, savings, rates]);
 
   // Calculations
-  const balance = useMemo(
-    () =>
-      transactions.reduce(
-        (acc, curr) =>
-          curr.type === "income" ? acc + curr.amount : acc - curr.amount,
-        0
-      ),
-    [transactions]
-  );
-  const income = useMemo(
-    () =>
-      transactions
-        .filter((t) => t.type === "income")
-        .reduce((acc, curr) => acc + curr.amount, 0),
-    [transactions]
-  );
-  const expense = useMemo(
-    () =>
-      transactions
-        .filter((t) => t.type === "expense")
-        .reduce((acc, curr) => acc + curr.amount, 0),
-    [transactions]
-  );
+    const balance = useMemo(
+        () =>
+            transactions.reduce(
+                (acc, curr) =>
+                    curr.isIncome ? acc + curr.amount : acc - curr.amount,
+                0
+            ),
+        [transactions]
+    );
+
+    const income = useMemo(
+        () =>
+            transactions
+                .filter((t) => t.isIncome)
+                .reduce((acc, curr) => acc + curr.amount, 0),
+        [transactions]
+    );
+
+    const expense = useMemo(
+        () =>
+            transactions
+                .filter((t) => !t.isIncome)
+                .reduce((acc, curr) => acc + curr.amount, 0),
+        [transactions]
+    );
 
     const handleLogin = async (email, password) => {
         try {
@@ -145,11 +128,12 @@ export default function App() {
                 setUser(data.user);
                 setView(data.user.role === "admin" ? "admin" : "home");
                 localStorage.setItem("finance_user", JSON.stringify(data.user));
+                localStorage.setItem("finance_token", data.token);
             } else {
                 alert("Login failed! Check your credentials.");
             }
         } catch (error) {
-            alert("Server error.");
+            console.error(error);
         }
     };
 
@@ -171,7 +155,7 @@ export default function App() {
                 alert("Registration failed.");
             }
         } catch (error) {
-            alert("Server error. Is the backend running?");
+            console.error(error);
         }
     };
 
@@ -181,14 +165,58 @@ export default function App() {
     localStorage.removeItem("finance_user");
   };
 
-  const addTransaction = (tx) => {
-    setTransactions((prev) => [tx, ...prev]);
-    setIsModalOpen(false);
-  };
+    const addTransaction = async (transactionData) => {
+        const token = localStorage.getItem("finance_token");
 
-  const deleteTransaction = (id) => {
-    setTransactions(transactions.filter((t) => t.id !== id));
-  };
+        console.log("Saving transaction for User ID:", user.id);
+
+        try {
+            const response = await fetch(`${API_URL}/Transaction`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}` // Sends your JWT for security
+                },
+                body: JSON.stringify({
+                    ...transactionData,
+                    userId: user.id // Ensures the transaction belongs to the current user
+                })
+            });
+
+            if (response.ok) {
+                const savedTx = await response.json();
+                // Update local state so the UI (Total Balance/Transactions) refreshes immediately
+                setTransactions([savedTx, ...transactions]);
+                setIsModalOpen(false); // Close the modal
+            } else {
+                alert("Failed to save transaction to database.");
+            }
+        } catch (err) {
+            console.error("Backend connection error:", err);
+        }
+    };
+
+    const deleteTransaction = async (id) => {
+        const token = localStorage.getItem("finance_token");
+
+        try {
+            const response = await fetch(`${API_URL}/Transaction/${id}`, {
+                method: "DELETE",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                // Only remove from UI if the database deletion was successful
+                setTransactions(transactions.filter((t) => t.id !== id));
+            } else {
+                alert("Failed to delete transaction from database.");
+            }
+        } catch (error) {
+            console.error("Delete error:", error);
+        }
+    };
 
   const updateSavings = (newSavings) => {
     setSavings(newSavings);

@@ -2,8 +2,6 @@ C:\Users\vlad9\source\repos\FinanceTracker\FinanceTracker\bin\Debug\net8.0\appse
 C:\Users\vlad9\source\repos\FinanceTracker\FinanceTracker\bin\Debug\net8.0\appsettings.json
 C:\Users\vlad9\source\repos\FinanceTracker\FinanceTracker\bin\Debug\net8.0\finance-tracker\package-lock.json
 C:\Users\vlad9\source\repos\FinanceTracker\FinanceTracker\bin\Debug\net8.0\finance-tracker\package.json
-C:\Users\vlad9\source\repos\FinanceTracker\FinanceTracker\bin\Debug\net8.0\programing-project\finance-tracker\package-lock.json
-C:\Users\vlad9\source\repos\FinanceTracker\FinanceTracker\bin\Debug\net8.0\programing-project\finance-tracker\package.json
 C:\Users\vlad9\source\repos\FinanceTracker\FinanceTracker\bin\Debug\net8.0\FinanceTracker.staticwebassets.endpoints.json
 C:\Users\vlad9\source\repos\FinanceTracker\FinanceTracker\bin\Debug\net8.0\FinanceTracker.exe
 C:\Users\vlad9\source\repos\FinanceTracker\FinanceTracker\bin\Debug\net8.0\FinanceTracker.deps.json
@@ -148,3 +146,4 @@ C:\Users\vlad9\source\repos\FinanceTracker\FinanceTracker\obj\Debug\net8.0\refin
 C:\Users\vlad9\source\repos\FinanceTracker\FinanceTracker\obj\Debug\net8.0\FinanceTracker.pdb
 C:\Users\vlad9\source\repos\FinanceTracker\FinanceTracker\obj\Debug\net8.0\FinanceTracker.genruntimeconfig.cache
 C:\Users\vlad9\source\repos\FinanceTracker\FinanceTracker\obj\Debug\net8.0\ref\FinanceTracker.dll
+C:\Users\vlad9\source\repos\FinanceTracker\FinanceTracker\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

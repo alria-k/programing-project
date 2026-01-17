@@ -6,45 +6,39 @@ namespace FinanceTracker.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-
 public class TransactionController(FinanceTrackerDbContext context) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] long userId)
     {
-        var list = await context.Transactions.ToListAsync();
+        // Only return transactions where the UserId matches the logged-in user
+        var list = await context.Transactions
+            .Where(t => t.UserId == userId)
+            .OrderByDescending(t => t.Date)
+            .ToListAsync();
         return Ok(list);
     }
 
-    [HttpGet("summary")]
-    public IActionResult GetSummary()
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<Transaction>> GetTransaction(long id)
     {
-        var transactions = context.Transactions.ToList();
-
-        var income = transactions.Where(t => t.IsIncome).Sum(t => t.Amount);
-        var expenses = transactions.Where(t => !t.IsIncome).Sum(t => t.Amount);
-
-        return Ok(new
-        {
-            totalBalance = income - expenses,
-            totalIncome = income,
-            totalExpenses = expenses
-        });
-    }
-
-
-
-    [HttpPost]
-    public async Task<IActionResult> Create([FromBody] Transaction transaction)
-    {
-        context.Transactions.Add(transaction);
-        await context.SaveChangesAsync();
-
+        var transaction = await context.Transactions.FindAsync(id);
+        if (transaction == null) return NotFound();
         return Ok(transaction);
     }
 
+    [HttpPost]
+    public async Task<ActionResult<Transaction>> PostTransaction(Transaction transaction)
+    {
+        context.Transactions.Add(transaction);
+        await context.SaveChangesAsync();
+        // Return the transaction so React can add it to the list
+        return CreatedAtAction(nameof(GetTransaction), new { id = transaction.Id }, transaction);
+    }
+
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(long id) 
     {
         var transaction = await context.Transactions.FindAsync(id);
         if (transaction == null) return NotFound();

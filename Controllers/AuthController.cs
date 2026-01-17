@@ -25,6 +25,7 @@ public class AuthController(FinanceTrackerDbContext context) : ControllerBase
             token = "fake-jwt-token-for-now", // We will add real JWT later
             user = new
             {
+                id = user.Id,
                 name = user.Username,
                 email = user.Email,
                 role = user.Role,
