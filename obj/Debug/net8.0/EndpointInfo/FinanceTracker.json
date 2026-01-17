@@ -67,6 +67,18 @@
         }
       }
     },
+    "/Auth/all-users": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/Transaction": {
       "get": {
         "tags": [

@@ -1,6 +1,16 @@
 [
   {
     "ContainingType": "FinanceTracker.Controllers.AuthController",
+    "Method": "GetAllUsers",
+    "RelativePath": "Auth/all-users",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "FinanceTracker.Controllers.AuthController",
     "Method": "Login",
     "RelativePath": "Auth/login",
     "HttpMethod": "POST",

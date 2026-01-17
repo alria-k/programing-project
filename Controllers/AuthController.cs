@@ -47,6 +47,14 @@ public class AuthController(FinanceTrackerDbContext context) : ControllerBase
         return Ok();
     }
 
+    [HttpGet("all-users")]
+    public IActionResult GetAllUsers()
+    {
+        // to see everyone registered in the .db file via Swagger
+        var users = context.Users.ToList();
+        return Ok(users);
+    }
+
     // Data structure to match the frontend form
     public class RegisterRequest
     {

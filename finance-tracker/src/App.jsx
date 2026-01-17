@@ -131,31 +131,49 @@ export default function App() {
     [transactions]
   );
 
-  const handleLogin = (name, email, password) => {
-    if (email === "admin@finance.app" && password === "admin") {
-      const adminUser = {
-        name: "Administrator",
-        role: "admin",
-        email,
-        isActive: true,
-      };
-      setUser(adminUser);
-      setView("admin");
-    } else if (email === "locked@finance.app" && password === "locked") {
-      const blockedUser = {
-        name: "Blocked User",
-        role: "user",
-        email,
-        isActive: false,
-      };
-      setUser(blockedUser);
-      setView("home");
-    } else {
-      const normalUser = { name, role: "user", email, isActive: true };
-      setUser(normalUser);
-      setView("home");
-    }
-  };
+    const handleLogin = async (email, password) => {
+        try {
+            const response = await fetch("https://localhost:7055/Auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ Email: email, Password: password }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                // We only want the 'user' part of the response
+                setUser(data.user);
+                setView(data.user.role === "admin" ? "admin" : "home");
+                localStorage.setItem("finance_user", JSON.stringify(data.user));
+            } else {
+                alert("Login failed! Check your credentials.");
+            }
+        } catch (error) {
+            alert("Server error.");
+        }
+    };
+
+    const handleRegister = async (name, email, password) => {
+        try {
+            const response = await fetch("https://localhost:7055/Auth/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    Name: name,
+                    Email: email,
+                    Password: password
+                }),
+            });
+
+            if (response.ok) {
+                alert("Registration successful! You can now log in.");
+            } else {
+                alert("Registration failed.");
+            }
+        } catch (error) {
+            alert("Server error. Is the backend running?");
+        }
+    };
 
   const handleLogout = () => {
     setUser(null);
@@ -204,7 +222,7 @@ export default function App() {
   };
 
   if (view === "auth") {
-    return <AuthScreen onLogin={handleLogin} />;
+      return <AuthScreen onLogin={handleLogin} onRegister={handleRegister} />;
   }
 
   if (view === "admin") {
