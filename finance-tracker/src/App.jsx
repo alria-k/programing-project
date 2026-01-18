@@ -197,24 +197,28 @@ export default function App() {
     };
 
     const deleteTransaction = async (id) => {
-        const token = localStorage.getItem("finance_token");
+        // Confirm with user before deleting from the database
+        if (!window.confirm("Are you sure you want to delete this transaction?")) return;
 
         try {
             const response = await fetch(`${API_URL}/Transaction/${id}`, {
                 method: "DELETE",
                 headers: {
-                    "Authorization": `Bearer ${token}`
+                    // Ensure the token is included if you have authorization enabled
+                    "Authorization": `Bearer ${localStorage.getItem("finance_token")}`
                 }
             });
 
             if (response.ok) {
-                // Only remove from UI if the database deletion was successful
-                setTransactions(transactions.filter((t) => t.id !== id));
+                // Remove from local state to update the dashboard totals immediately
+                setTransactions((prev) => prev.filter((t) => t.id !== id));
             } else {
-                alert("Failed to delete transaction from database.");
+                const error = await response.json();
+                console.error("Delete failed:", error);
+                alert("Could not delete from database.");
             }
-        } catch (error) {
-            console.error("Delete error:", error);
+        } catch (err) {
+            console.error("Connection error:", err);
         }
     };
 

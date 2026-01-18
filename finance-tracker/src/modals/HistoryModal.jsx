@@ -3,30 +3,33 @@ import { X } from "lucide-react";
 import HistoryItem from "../components/shared/HistoryItem";
 
 const HistoryModal = ({ transactions, onClose, onDelete }) => {
-  const historyData = useMemo(() => {
-    const sorted = [...transactions].sort((a, b) => {
-      const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
-      const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
-      return timeA - timeB;
-    });
+    const historyData = useMemo(() => {
+        const sorted = [...transactions].sort((a, b) => {
+           
+            const dateA = a.timestamp ? new Date(a.timestamp) : new Date(a.date);
+            const dateB = b.timestamp ? new Date(b.timestamp) : new Date(b.date);
+            return dateA - dateB || a.id - b.id;
+        });
 
-    let runningBalance = 0;
-    const withBalances = sorted.map((tx) => {
-      const previousBalance = runningBalance;
-      if (tx.type === "income") {
-        runningBalance += tx.amount;
-      } else {
-        runningBalance -= tx.amount;
-      }
-      return {
-        ...tx,
-        balanceBefore: previousBalance,
-        balanceAfter: runningBalance,
-      };
-    });
+        let runningBalance = 0;
+        const withBalances = sorted.map((tx) => {
+            const previousBalance = runningBalance;
+            const isIncome = tx.isIncome === true || tx.isIncome === 1;
 
-    return withBalances.reverse();
-  }, [transactions]);
+            if (isIncome) {
+                runningBalance += tx.amount;
+            } else {
+                runningBalance -= tx.amount;
+            }
+
+            return {
+                ...tx,
+                balanceBefore: previousBalance,
+                balanceAfter: runningBalance,
+            };
+        });
+        return withBalances.reverse();
+    }, [transactions]);
 
   return (
     <div className="absolute inset-0 z-50 bg-white flex flex-col animate-slide-up">
