@@ -29,9 +29,24 @@ public class AuthController(FinanceTrackerDbContext context) : ControllerBase
                 name = user.Username,
                 email = user.Email,
                 role = user.Role,
-                isActive = true
+                isActive = true,
+                currentSavings = user.CurrentSavings,
+                savingsGoal = user.SavingsGoal
             }
         });
+    }
+
+    [HttpPatch("update-savings/{id}")]
+    public async Task<IActionResult> UpdateSavings(long id, [FromBody] User savingsData)
+    {
+        var user = await context.Users.FindAsync(id);
+        if (user == null) return NotFound();
+
+        user.CurrentSavings = savingsData.CurrentSavings;
+        user.SavingsGoal = savingsData.SavingsGoal;
+
+        await context.SaveChangesAsync(); // Persists to FinanceData.db
+        return NoContent();
     }
 
     [HttpPost("register")]

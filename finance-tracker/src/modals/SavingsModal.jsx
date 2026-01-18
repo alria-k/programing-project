@@ -6,10 +6,13 @@ const SavingsModal = ({ savings, onSave, onClose }) => {
   const [goal, setGoal] = useState(savings.goal);
   const [current, setCurrent] = useState(savings.current);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSave({ goal: parseFloat(goal), current: parseFloat(current) });
-  };
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        onSave({
+            goal: parseFloat(goal),
+            current: parseFloat(current)
+        });
+    };
 
   return (
     <div className="absolute inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">

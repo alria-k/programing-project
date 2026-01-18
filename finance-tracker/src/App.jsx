@@ -31,32 +31,26 @@ export default function App() {
     credit: 14.2,
     inflation: 4.1,
   });
-  const [savings, setSavings] = useState({ goal: 20000, current: 5000 });
+
+    const savings = useMemo(() => ({
+        goal: user?.savingsGoal ?? 0,
+        current: user?.currentSavings ?? 0
+    }), [user]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isSavingsModalOpen, setIsSavingsModalOpen] = useState(false);
 
-    // 1. Initialize session and basic settings from localStorage
     useEffect(() => {
         const savedUser = localStorage.getItem("finance_user");
-        const savedSavings = localStorage.getItem("finance_savings");
-        const savedRates = localStorage.getItem("finance_rates");
-
         if (savedUser) {
             const parsedUser = JSON.parse(savedUser);
-            // Ensure the account isn't accidentally locked out
-            if (parsedUser.isActive === undefined) parsedUser.isActive = true;
             setUser(parsedUser);
             setView(parsedUser.role === "admin" ? "admin" : "home");
         }
-
-        if (savedSavings) setSavings(JSON.parse(savedSavings));
-        if (savedRates) setRates(JSON.parse(savedRates));
-        // NOTE: We no longer load 'savedTx' here because we want fresh data from the DB
     }, []);
 
-    // 2. Fetch LIVE transactions from the database whenever the user changes
+   
     useEffect(() => {
         const fetchUserTransactions = async () => {
             // Prevents 'undefined' errors if user isn't fully loaded yet
@@ -77,14 +71,12 @@ export default function App() {
         fetchUserTransactions();
     }, [user]);
 
-    // 3. Save only persistent settings (NOT transactions) to localStorage
     useEffect(() => {
         if (user) {
             localStorage.setItem("finance_user", JSON.stringify(user));
         }
         localStorage.setItem("finance_savings", JSON.stringify(savings));
         localStorage.setItem("finance_rates", JSON.stringify(rates));
-        // !!! DO NOT save transactions here. Let the database handle them !!!
     }, [user, savings, rates]);
 
   // Calculations
@@ -222,10 +214,36 @@ export default function App() {
         }
     };
 
-  const updateSavings = (newSavings) => {
-    setSavings(newSavings);
-    setIsSavingsModalOpen(false);
-  };
+    const updateSavings = async (newSavingsData) => {
+        const token = localStorage.getItem("finance_token");
+
+        try {
+            const response = await fetch(`${API_URL}/Auth/update-savings/${user.id}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    currentSavings: newSavingsData.current,
+                    savingsGoal: newSavingsData.goal
+                })
+            });
+
+            if (response.ok) {
+                const updatedUser = {
+                    ...user,
+                    currentSavings: newSavingsData.current,
+                    savingsGoal: newSavingsData.goal
+                };
+                setUser(updatedUser);
+                localStorage.setItem("finance_user", JSON.stringify(updatedUser));
+                setIsSavingsModalOpen(false);
+            }
+        } catch (error) {
+            console.error("Failed to update savings:", error);
+        }
+    };
 
   const handleUpdateRates = (newRates) => {
     setRates(newRates);
