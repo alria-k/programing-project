@@ -10,4 +10,5 @@ public class User
 
     public decimal CurrentSavings { get; set; }
     public decimal SavingsGoal { get; set; }
+    public bool IsActive { get; set; } = true;
 }

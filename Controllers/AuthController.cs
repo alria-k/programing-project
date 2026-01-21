@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using FinanceTracker.Models;
+﻿using FinanceTracker.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace FinanceTracker.Controllers;
 
@@ -10,26 +11,29 @@ public class AuthController(FinanceTrackerDbContext context) : ControllerBase
     [HttpPost("login")]
     public IActionResult Login([FromBody] LoginRequest request)
     {
-        // 1. Look for the user in your database
         var user = context.Users.FirstOrDefault(u => u.Email == request.Email);
 
-        // 2. Simple check (for now, we'll improve security later)
         if (user == null || user.PasswordHash != request.Password)
         {
             return Unauthorized("Invalid email or password");
         }
 
-        // 3. Return the user data the frontend expects
+        if (!user.IsActive)
+        {
+            return StatusCode(403, "Account Deactivated.");
+        }
+
         return Ok(new
         {
-            token = "fake-jwt-token-for-now", // We will add real JWT later
+            token = "fake-jwt-token-for-now",
             user = new
             {
                 id = user.Id,
                 name = user.Username,
                 email = user.Email,
-                role = user.Role,
-                isActive = true,
+                // .ToLower() ensures the frontend comparison (=== "admin") always works
+                role = user.Role.ToLower(),
+                isActive = user.IsActive,
                 currentSavings = user.CurrentSavings,
                 savingsGoal = user.SavingsGoal
             }
@@ -72,6 +76,50 @@ public class AuthController(FinanceTrackerDbContext context) : ControllerBase
     }
 
     // Data structure to match the frontend form
+
+    [HttpPatch("update-user-profile")]
+    public async Task<IActionResult> UpdateUserProfile([FromBody] UserUpdateDto updateData)
+    {
+        // Find the user by Email (the unique identifier from your frontend)
+        var user = await context.Users.FirstOrDefaultAsync(u => u.Email == updateData.Email);
+
+        if (user == null) return NotFound("User not found.");
+
+        // 1. Update Account Status
+        user.IsActive = updateData.IsActive;
+
+        // 2. Update Name if provided
+        if (!string.IsNullOrEmpty(updateData.Name))
+        {
+            user.Username = updateData.Name;
+        }
+
+        // 3. Update Balance (CurrentSavings column in your DB)
+        user.CurrentSavings = updateData.Balance;
+
+        await context.SaveChangesAsync();
+        return Ok(new { message = "User updated successfully", user });
+    }
+
+    [HttpGet("user-details/{email}")]
+    public async Task<IActionResult> GetUserDetails(string email)
+    {
+        var user = await context.Users
+            .Select(u => new {
+                u.Username,
+                u.Email,
+                u.Role,
+                u.CurrentSavings,
+                u.IsActive,
+                // We can also count their transactions here
+                TransactionCount = context.Transactions.Count(t => t.UserId == u.Id)
+            })
+            .FirstOrDefaultAsync(u => u.Email == email);
+
+        if (user == null) return NotFound();
+
+        return Ok(user);
+    }
     public class RegisterRequest
     {
         public string Name { get; set; } = string.Empty;

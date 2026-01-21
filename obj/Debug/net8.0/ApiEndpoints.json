@@ -63,6 +63,38 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "FinanceTracker.Controllers.AuthController",
+    "Method": "UpdateUserProfile",
+    "RelativePath": "Auth/update-user-profile",
+    "HttpMethod": "PATCH",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "updateData",
+        "Type": "FinanceTracker.Models.UserUpdateDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "FinanceTracker.Controllers.AuthController",
+    "Method": "GetUserDetails",
+    "RelativePath": "Auth/user-details/{email}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "email",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "FinanceTracker.Controllers.TransactionController",
     "Method": "GetAll",
     "RelativePath": "Transaction",
