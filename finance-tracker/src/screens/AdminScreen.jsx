@@ -12,27 +12,26 @@ import Button from "../components/ui/Button";
 import { formatCurrency } from "../utils/helpers";
 
 const AdminScreen = ({
-  user,
+  user, // Данные залогиненного админа
   rates,
   onUpdateRates,
   onLogout,
-  currentUserData,
   onUpdateUser,
+  users = [], // Все юзеры из БД
 }) => {
   const [localRates, setLocalRates] = useState(rates);
   const [editingUser, setEditingUser] = useState(false);
 
-  // Edit User Local State
-  const [editEmail, setEditEmail] = useState(currentUserData.email);
-  const [editActive, setEditActive] = useState(
-    currentUserData.isActive ?? true,
-  );
+  // Состояния для модалки (только email и статус)
+  const [targetUserEmail, setTargetUserEmail] = useState("");
+  const [editActive, setEditActive] = useState(true);
 
-  // Sync when opening modal or data changes
+  // Авто-скролл наверх при открытии редактирования
   useEffect(() => {
-    setEditEmail(currentUserData.email);
-    setEditActive(currentUserData.isActive ?? true);
-  }, [currentUserData, editingUser]);
+    if (editingUser) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [editingUser]);
 
   const handleRateChange = (key, value) => {
     setLocalRates((prev) => ({ ...prev, [key]: parseFloat(value) }));
@@ -43,10 +42,10 @@ const AdminScreen = ({
     alert("Global rates updated successfully!");
   };
 
+  // Функция сохранения: отправляет только email и активность
   const saveUser = () => {
     onUpdateUser({
-      name: editEmail,
-      email: currentUserData.email, // Ensure this is Mary's email, not yours
+      email: targetUserEmail,
       isActive: editActive,
     });
     setEditingUser(false);
@@ -55,7 +54,7 @@ const AdminScreen = ({
   return (
     <div className="min-h-screen bg-gray-900 flex justify-center text-gray-100">
       <div className="w-full max-w-md bg-gray-900 shadow-2xl overflow-hidden relative min-h-screen flex flex-col">
-        {/* Admin Header */}
+        {/* Header */}
         <header className="px-6 pt-12 pb-6 flex justify-between items-center bg-gray-800/50 border-b border-gray-700">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-600 rounded-xl">
@@ -101,7 +100,6 @@ const AdminScreen = ({
                   />
                 </div>
               </div>
-
               <div>
                 <label className="text-xs font-bold text-gray-500 uppercase ml-1">
                   Credit Rate (%)
@@ -117,7 +115,6 @@ const AdminScreen = ({
                   />
                 </div>
               </div>
-
               <div>
                 <label className="text-xs font-bold text-gray-500 uppercase ml-1">
                   Inflation (%)
@@ -135,7 +132,6 @@ const AdminScreen = ({
                   />
                 </div>
               </div>
-
               <Button variant="primary" onClick={saveRates}>
                 Update Rates
               </Button>
@@ -149,55 +145,68 @@ const AdminScreen = ({
               <h2 className="text-lg font-bold">User Management</h2>
             </div>
 
-            <div className="bg-gray-800 p-5 rounded-3xl border border-gray-700">
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center gap-3">
+            {/* Блок со скроллом: видно примерно 2 юзера, админ скрыт */}
+            <div className="max-h-[320px] overflow-y-auto space-y-4 pr-1 scrollbar-hide">
+              {users
+                .filter((u) => u.email !== user?.email)
+                .map((userData, index) => (
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
-                      currentUserData.isActive ? "bg-blue-600" : "bg-red-500"
-                    }`}
+                    key={index}
+                    className="bg-gray-800 p-5 rounded-3xl border border-gray-700"
                   >
-                    {currentUserData.name.charAt(0)}
+                    <div className="flex justify-between items-center mb-4">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
+                            userData.isActive ? "bg-blue-600" : "bg-red-500"
+                          }`}
+                        >
+                          {userData.email.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-bold text-white text-sm truncate w-40">
+                            {userData.email}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            {userData.isActive ? "Active" : "Deactivated"}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setTargetUserEmail(userData.email);
+                          setEditActive(userData.isActive);
+                          setEditingUser(true);
+                        }}
+                        className="p-2 bg-gray-700 rounded-lg text-gray-300 hover:bg-gray-600"
+                      >
+                        <Edit3 size={16} />
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-gray-900 p-3 rounded-2xl">
+                        <p className="text-xs text-gray-500">Balance</p>
+                        <p className="font-bold text-white text-sm">
+                          {formatCurrency(userData.currentSavings || 0)}
+                        </p>
+                      </div>
+                      <div className="bg-gray-900 p-3 rounded-2xl">
+                        <p className="text-xs text-gray-500">Goal</p>
+                        <p className="font-bold text-white text-sm">
+                          {formatCurrency(userData.savingsGoal || 0)}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-bold text-white">
-                      {currentUserData.name}
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      {currentUserData.isActive ? "Active" : "Deactivated"}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setEditingUser(true)}
-                  className="p-2 bg-gray-700 rounded-lg text-gray-300 hover:bg-gray-600"
-                >
-                  <Edit3 size={16} />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                <div className="bg-gray-900 p-3 rounded-2xl">
-                  <p className="text-xs text-gray-500">Balance</p>
-                  <p className="font-bold text-white">
-                    {formatCurrency(currentUserData.balance)}
-                  </p>
-                </div>
-                <div className="bg-gray-900 p-3 rounded-2xl">
-                  <p className="text-xs text-gray-500">Transactions</p>
-                  <p className="font-bold text-white">
-                    {currentUserData.transactionsCount}
-                  </p>
-                </div>
-              </div>
+                ))}
             </div>
           </section>
         </main>
 
-        {/* Edit User Modal */}
+        {/* Edit User Modal (только email и деактивация) */}
         {editingUser && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-6 animate-fade-in">
-            <div className="bg-gray-800 w-full rounded-3xl p-6 border border-gray-700 animate-slide-up">
+          <div className="absolute inset-0 z-50 flex items-start justify-center bg-black/80 backdrop-blur-sm p-6 pt-10 animate-fade-in">
+            <div className="bg-gray-800 w-full rounded-3xl p-6 border border-gray-700 shadow-2xl">
               <h3 className="text-xl font-bold text-white mb-6">
                 Edit User Profile
               </h3>
@@ -209,9 +218,9 @@ const AdminScreen = ({
                   </label>
                   <input
                     type="text"
-                    value={editEmail}
-                    onChange={(e) => setEditEmail(e.target.value)}
-                    className="w-full px-4 py-3 rounded-2xl bg-gray-900 border border-gray-600 text-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    value={targetUserEmail}
+                    readOnly // Email обычно не меняют, он служит ID для поиска в БД
+                    className="w-full px-4 py-3 rounded-2xl bg-gray-900 border border-gray-600 text-gray-500 outline-none cursor-not-allowed"
                   />
                 </div>
 

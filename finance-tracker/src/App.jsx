@@ -22,8 +22,32 @@ import { getTodayISO } from "./utils/helpers";
 
 export default function App() {
   const [user, setUser] = useState(null);
+  const [users, setUsers] = useState([]);
   const [view, setView] = useState("auth");
   const [transactions, setTransactions] = useState([]);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch(
+        "https://citied-unforward-tennie.ngrok-free.dev/Auth/all-users",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "ngrok-skip-browser-warning": "69420", // Пропускаем проверку ngrok
+          },
+        },
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data); // Сохраняем полученный массив [{email, isActive}]
+        console.log("Данные пользователей загружены:", data);
+      }
+    } catch (error) {
+      console.error("Ошибка при подгрузке пользователей:", error);
+    }
+  };
 
   // Global States
   const [rates, setRates] = useState({
@@ -82,6 +106,10 @@ export default function App() {
       setUser(parsedUser);
       setView(parsedUser.role?.toLowerCase() === "admin" ? "admin" : "home");
     }
+  }, []);
+
+  useEffect(() => {
+    fetchUsers();
   }, []);
 
   // Calculations
@@ -297,6 +325,7 @@ export default function App() {
   if (view === "admin") {
     return (
       <AdminScreen
+        users={users}
         user={user}
         rates={rates}
         onUpdateRates={handleUpdateRates}

@@ -68,10 +68,16 @@ public class AuthController(FinanceTrackerDbContext context) : ControllerBase
     }
 
     [HttpGet("all-users")]
-    public IActionResult GetAllUsers()
+    public async Task<IActionResult> GetAllUsers()
     {
-        // to see everyone registered in the .db file via Swagger
-        var users = context.Users.ToList();
+        // Выбираем строго Email и IsActive
+        var users = await context.Users
+            .Select(u => new { 
+                u.Email, 
+                u.IsActive 
+            })
+            .ToListAsync();
+
         return Ok(users);
     }
 
