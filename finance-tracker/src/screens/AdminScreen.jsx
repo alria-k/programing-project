@@ -12,21 +12,19 @@ import Button from "../components/ui/Button";
 import { formatCurrency } from "../utils/helpers";
 
 const AdminScreen = ({
-  user, // Данные залогиненного админа
+  user,
   rates,
   onUpdateRates,
   onLogout,
   onUpdateUser,
-  users = [], // Все юзеры из БД
+  users = [],
 }) => {
   const [localRates, setLocalRates] = useState(rates);
   const [editingUser, setEditingUser] = useState(false);
 
-  // Состояния для модалки (только email и статус)
   const [targetUserEmail, setTargetUserEmail] = useState("");
   const [editActive, setEditActive] = useState(true);
 
-  // Авто-скролл наверх при открытии редактирования
   useEffect(() => {
     if (editingUser) {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -42,7 +40,6 @@ const AdminScreen = ({
     alert("Global rates updated successfully!");
   };
 
-  // Функция сохранения: отправляет только email и активность
   const saveUser = () => {
     onUpdateUser({
       email: targetUserEmail,
@@ -54,7 +51,6 @@ const AdminScreen = ({
   return (
     <div className="min-h-screen bg-gray-900 flex justify-center text-gray-100">
       <div className="w-full max-w-md bg-gray-900 shadow-2xl overflow-hidden relative min-h-screen flex flex-col">
-        {/* Header */}
         <header className="px-6 pt-12 pb-6 flex justify-between items-center bg-gray-800/50 border-b border-gray-700">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-600 rounded-xl">
@@ -76,7 +72,6 @@ const AdminScreen = ({
         </header>
 
         <main className="flex-1 overflow-y-auto px-6 py-6 scrollbar-hide space-y-8">
-          {/* Global Market Rates */}
           <section>
             <div className="flex items-center gap-2 mb-4">
               <Settings size={18} className="text-blue-400" />
@@ -138,14 +133,12 @@ const AdminScreen = ({
             </div>
           </section>
 
-          {/* User Management */}
           <section>
             <div className="flex items-center gap-2 mb-4">
               <Users size={18} className="text-green-400" />
               <h2 className="text-lg font-bold">User Management</h2>
             </div>
 
-            {/* Блок со скроллом: видно примерно 2 юзера, админ скрыт */}
             <div className="max-h-[320px] overflow-y-auto space-y-4 pr-1 scrollbar-hide">
               {users
                 .filter((u) => u.email !== user?.email)
@@ -154,7 +147,7 @@ const AdminScreen = ({
                     key={index}
                     className="bg-gray-800 p-5 rounded-3xl border border-gray-700"
                   >
-                    <div className="flex justify-between items-center mb-4">
+                    <div className="flex justify-between items-center">
                       <div className="flex items-center gap-3">
                         <div
                           className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
@@ -183,27 +176,12 @@ const AdminScreen = ({
                         <Edit3 size={16} />
                       </button>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-gray-900 p-3 rounded-2xl">
-                        <p className="text-xs text-gray-500">Balance</p>
-                        <p className="font-bold text-white text-sm">
-                          {formatCurrency(userData.currentSavings || 0)}
-                        </p>
-                      </div>
-                      <div className="bg-gray-900 p-3 rounded-2xl">
-                        <p className="text-xs text-gray-500">Goal</p>
-                        <p className="font-bold text-white text-sm">
-                          {formatCurrency(userData.savingsGoal || 0)}
-                        </p>
-                      </div>
-                    </div>
                   </div>
                 ))}
             </div>
           </section>
         </main>
 
-        {/* Edit User Modal (только email и деактивация) */}
         {editingUser && (
           <div className="absolute inset-0 z-50 flex items-start justify-center bg-black/80 backdrop-blur-sm p-6 pt-10 animate-fade-in">
             <div className="bg-gray-800 w-full rounded-3xl p-6 border border-gray-700 shadow-2xl">
@@ -219,7 +197,7 @@ const AdminScreen = ({
                   <input
                     type="text"
                     value={targetUserEmail}
-                    readOnly // Email обычно не меняют, он служит ID для поиска в БД
+                    readOnly
                     className="w-full px-4 py-3 rounded-2xl bg-gray-900 border border-gray-600 text-gray-500 outline-none cursor-not-allowed"
                   />
                 </div>

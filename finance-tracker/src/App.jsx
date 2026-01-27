@@ -34,22 +34,20 @@ export default function App() {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            "ngrok-skip-browser-warning": "69420", // Пропускаем проверку ngrok
+            "ngrok-skip-browser-warning": "69420",
           },
         },
       );
 
       if (response.ok) {
         const data = await response.json();
-        setUsers(data); // Сохраняем полученный массив [{email, isActive}]
-        console.log("Данные пользователей загружены:", data);
+        setUsers(data);
       }
     } catch (error) {
-      console.error("Ошибка при подгрузке пользователей:", error);
+      console.error("Error", error);
     }
   };
 
-  // Global States
   const [rates, setRates] = useState({
     mortgage: 6.5,
     credit: 14.2,
@@ -79,14 +77,20 @@ export default function App() {
 
   useEffect(() => {
     const fetchUserTransactions = async () => {
-      // Prevents 'undefined' errors if user isn't fully loaded yet
       if (!user || !user.id) return;
 
       try {
-        // Fetch specific records for 'Vlad' or 'Tester' using the UserId
         const response = await fetch(
           `${API_URL}/Transaction?userId=${user.id}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "ngrok-skip-browser-warning": "69420",
+            },
+          },
         );
+
         if (response.ok) {
           const data = await response.json();
           setTransactions(data);
@@ -97,7 +101,7 @@ export default function App() {
     };
 
     fetchUserTransactions();
-  }, [user]);
+  }, [user, API_URL]);
 
   useEffect(() => {
     const savedUser = localStorage.getItem("finance_user");
@@ -112,7 +116,6 @@ export default function App() {
     fetchUsers();
   }, []);
 
-  // Calculations
   const balance = useMemo(
     () =>
       transactions.reduce(
@@ -198,11 +201,11 @@ export default function App() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Sends your JWT for security
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           ...transactionData,
-          userId: user.id, // Ensures the transaction belongs to the current user
+          userId: user.id,
         }),
       });
 
@@ -234,7 +237,6 @@ export default function App() {
       });
 
       if (response.ok) {
-        // Remove from local state to update the dashboard totals immediately
         setTransactions((prev) => prev.filter((t) => t.id !== id));
       } else {
         const error = await response.json();
@@ -286,21 +288,17 @@ export default function App() {
 
   const handleUpdateUser = async (updatedData) => {
     try {
-      // 1. Update the database for the TARGET user (e.g., Mary)
       const response = await fetch(`${API_URL}/Auth/update-user-profile`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          Email: updatedData.email, // Use the target user's email
+          Email: updatedData.email,
           IsActive: updatedData.isActive,
         }),
       });
 
       if (response.ok) {
         alert(`Status for ${updatedData.email} updated successfully!`);
-
-        // 2. ONLY update the local 'user' state if you are editing YOURSELF.
-        // If you are editing someone else, do NOT call setUser(newUser).
         if (user.email === updatedData.email) {
           const newUser = {
             ...user,
@@ -345,7 +343,6 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center">
       <div className="w-full max-w-md bg-white shadow-2xl overflow-hidden relative min-h-screen flex flex-col">
-        {/* DEACTIVATED ACCOUNT OVERLAY */}
         {user && user.isActive === false && (
           <div className="absolute inset-0 z-[100] flex flex-col items-center justify-center p-8 bg-white/60 backdrop-blur-md">
             <div className="bg-white p-6 rounded-[2rem] shadow-2xl flex flex-col items-center text-center border border-gray-100 animate-slide-up">
@@ -366,7 +363,6 @@ export default function App() {
           </div>
         )}
 
-        {/* Header */}
         <header className="px-6 pt-12 pb-6 flex justify-between items-center bg-white sticky top-0 z-10">
           <div>
             <p className="text-gray-400 text-sm font-medium">Welcome back,</p>
@@ -380,7 +376,6 @@ export default function App() {
           </button>
         </header>
 
-        {/* Content */}
         <main
           className={`flex-1 overflow-y-auto px-6 pb-28 scrollbar-hide ${
             user?.isActive === false
@@ -404,7 +399,6 @@ export default function App() {
           {view === "stats" && <StatsScreen transactions={transactions} />}
         </main>
 
-        {/* Bottom Nav */}
         <nav
           className={`absolute bottom-0 w-full bg-white border-t border-gray-100 px-8 pb-6 pt-2 flex justify-between items-end z-20 h-24 ${
             user?.isActive === false ? "filter blur-sm pointer-events-none" : ""
@@ -434,7 +428,6 @@ export default function App() {
           />
         </nav>
 
-        {/* Modals */}
         {isModalOpen && (
           <AddTransactionModal
             onClose={() => setIsModalOpen(false)}

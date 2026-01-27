@@ -71,7 +71,6 @@ const AuthScreen = ({ onLogin, onRegister }) => {
             placeholder="••••••••"
           />
 
-          {/* Submit button — explicitly submits the form and triggers handleSubmit */}
           <button
             type="submit"
             className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:opacity-90"
@@ -83,7 +82,6 @@ const AuthScreen = ({ onLogin, onRegister }) => {
         <div className="mt-6 text-center">
           <p className="text-gray-500 text-sm">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
-            {/* Toggle button (outside the form) — only switches UI */}
             <button
               onClick={() => setIsLogin(!isLogin)}
               className="text-blue-600 font-semibold hover:underline"
