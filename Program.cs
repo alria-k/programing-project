@@ -18,7 +18,7 @@ builder.Services.AddDbContext<FinanceTrackerDbContext>(options =>
 
 builder.Services.AddCors(options => {
     options.AddDefaultPolicy(policy => {
-        policy.WithOrigins("http://localhost:5173") // Vite's default port
+        policy.WithOrigins("http://localhost:5173")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -26,7 +26,7 @@ builder.Services.AddCors(options => {
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -37,7 +37,7 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<FinanceTrackerDbContext>();
 
-    // This line ensures the database and tables exist before checking for users
+
     db.Database.EnsureCreated();
 
     if (!db.Users.Any())

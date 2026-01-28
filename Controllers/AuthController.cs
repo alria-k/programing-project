@@ -31,7 +31,6 @@ public class AuthController(FinanceTrackerDbContext context) : ControllerBase
                 id = user.Id,
                 name = user.Username,
                 email = user.Email,
-                // .ToLower() ensures the frontend comparison (=== "admin") always works
                 role = user.Role.ToLower(),
                 isActive = user.IsActive,
                 currentSavings = user.CurrentSavings,
@@ -49,7 +48,7 @@ public class AuthController(FinanceTrackerDbContext context) : ControllerBase
         user.CurrentSavings = savingsData.CurrentSavings;
         user.SavingsGoal = savingsData.SavingsGoal;
 
-        await context.SaveChangesAsync(); // Persists to FinanceData.db
+        await context.SaveChangesAsync();
         return NoContent();
     }
 
@@ -63,14 +62,13 @@ public class AuthController(FinanceTrackerDbContext context) : ControllerBase
             PasswordHash = request.Password
         };
         context.Users.Add(newUser);
-        context.SaveChanges(); // This saves Gregor to your new .db file
+        context.SaveChanges(); 
         return Ok();
     }
 
     [HttpGet("all-users")]
     public async Task<IActionResult> GetAllUsers()
     {
-        // Выбираем строго Email и IsActive
         var users = await context.Users
             .Select(u => new { 
                 u.Email, 
@@ -81,27 +79,15 @@ public class AuthController(FinanceTrackerDbContext context) : ControllerBase
         return Ok(users);
     }
 
-    // Data structure to match the frontend form
 
     [HttpPatch("update-user-profile")]
     public async Task<IActionResult> UpdateUserProfile([FromBody] UserUpdateDto updateData)
     {
-        // Find the user by Email (the unique identifier from your frontend)
         var user = await context.Users.FirstOrDefaultAsync(u => u.Email == updateData.Email);
 
         if (user == null) return NotFound("User not found.");
 
-        // 1. Update Account Status
         user.IsActive = updateData.IsActive;
-
-        // 2. Update Name if provided
-        if (!string.IsNullOrEmpty(updateData.Name))
-        {
-            user.Username = updateData.Name;
-        }
-
-        // 3. Update Balance (CurrentSavings column in your DB)
-        user.CurrentSavings = updateData.Balance;
 
         await context.SaveChangesAsync();
         return Ok(new { message = "User updated successfully", user });
@@ -117,7 +103,6 @@ public class AuthController(FinanceTrackerDbContext context) : ControllerBase
                 u.Role,
                 u.CurrentSavings,
                 u.IsActive,
-                // We can also count their transactions here
                 TransactionCount = context.Transactions.Count(t => t.UserId == u.Id)
             })
             .FirstOrDefaultAsync(u => u.Email == email);
@@ -135,7 +120,6 @@ public class AuthController(FinanceTrackerDbContext context) : ControllerBase
 
 }
 
-// Helper class to catch the frontend data
 public class LoginRequest
 {
     public string Email { get; set; } = string.Empty;
