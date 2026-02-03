@@ -18,7 +18,7 @@ builder.Services.AddDbContext<FinanceTrackerDbContext>(options =>
 
 builder.Services.AddCors(options => {
     options.AddDefaultPolicy(policy => {
-        policy.WithOrigins("http://localhost:5173") // Vite's default port
+        policy.WithOrigins("http://localhost:5173", "https://citied-unforward-tennie.ngrok-free.dev") // Vite's default port
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
