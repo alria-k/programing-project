@@ -11,7 +11,6 @@ public class TransactionController(FinanceTrackerDbContext context) : Controller
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] long userId)
     {
-        // Only return transactions where the UserId matches the logged-in user
         var list = await context.Transactions
             .Where(t => t.UserId == userId)
             .OrderByDescending(t => t.Date)
@@ -33,7 +32,6 @@ public class TransactionController(FinanceTrackerDbContext context) : Controller
     {
         context.Transactions.Add(transaction);
         await context.SaveChangesAsync();
-        // Return the transaction so React can add it to the list
         return CreatedAtAction(nameof(GetTransaction), new { id = transaction.Id }, transaction);
     }
 
