@@ -1,4 +1,4 @@
-export const API_URL = "https://citied-unforward-tennie.ngrok-free.dev";
+export const API_URL = "http://localhost:5028";
 import React, { useState, useEffect, useMemo } from "react";
 import { Home, PieChart, Plus, LogOut, Lock } from "lucide-react";
 
@@ -28,16 +28,12 @@ export default function App() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch(
-        "https://citied-unforward-tennie.ngrok-free.dev/Auth/all-users",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            "ngrok-skip-browser-warning": "69420",
-          },
+      const response = await fetch(`${API_URL}/Auth/all-users`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -80,16 +76,15 @@ export default function App() {
       if (!user || !user.id) return;
 
       try {
-        const response = await fetch(
-          `${API_URL}/Transaction?userId=${user.id}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              "ngrok-skip-browser-warning": "69420",
-            },
+      const response = await fetch(
+        `${API_URL}/Transaction?userId=${user.id}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
           },
-        );
+        },
+      );
 
         if (response.ok) {
           const data = await response.json();

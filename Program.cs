@@ -2,9 +2,18 @@ using Microsoft.EntityFrameworkCore;
 using FinanceTracker;
 using FinanceTracker.Models;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:5174", "http://localhost:5173")
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        });
+});
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -18,7 +27,7 @@ builder.Services.AddDbContext<FinanceTrackerDbContext>(options =>
 
 builder.Services.AddCors(options => {
     options.AddDefaultPolicy(policy => {
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins("http://localhost:5174", "http://localhost:5173")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -52,6 +61,11 @@ using (var scope = app.Services.CreateScope())
         db.SaveChanges();
     }
 }
+app.UseCors("AllowReactApp");
+
+app.UseAuthorization();
+app.MapControllers();
+app.Run();
 
 app.UseHttpsRedirection();
 
